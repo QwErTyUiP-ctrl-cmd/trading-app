@@ -125,4 +125,5 @@ else:
                     new_entry = [str(u_date), selected_acc, firm_name, float(initial_bal), float(target_bal), new_balance_calc]
                     sheet.append_row(new_entry)
                     st.success("Ajouté !")
+
                     st.rerun()
