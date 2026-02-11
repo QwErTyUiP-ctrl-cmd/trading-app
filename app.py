@@ -21,17 +21,14 @@ def get_google_sheet():
     creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
     client = gspread.authorize(creds)
     
-    # ---------------------------------------------------------
-    # 👇 COLLE TON LIEN GOOGLE SHEET ICI ENTRE LES GUILLEMETS 👇
-    # ---------------------------------------------------------
+    # 👇👇👇 REMETS TON LIEN GOOGLE SHEET ICI ENTRE LES GUILLEMETS 👇👇👇
     SHEET_URL = "https://docs.google.com/spreadsheets/d/1KnEQC__Q9U6bdJF0AzPPuwApfCgGS5-Qt_svtWSWxEE/edit?gid=0#gid=0" 
     
     try:
-        # On utilise open_by_url car c'est plus fiable que le nom
         sheet = client.open_by_url(SHEET_URL).sheet1
         return sheet
     except Exception as e:
-        st.error(f"Le robot n'arrive pas à ouvrir le fichier. Vérifie que tu as bien invité son email (client_email du JSON) dans le bouton Partager du Sheet. Erreur: {e}")
+        st.error(f"Erreur d'accès : {e}")
         st.stop()
 
 # --- CHARGEMENT DES DONNÉES ---
@@ -131,4 +128,28 @@ else:
                     new_entry = [str(u_date), selected_acc, firm_name, float(initial_bal), float(target_bal), new_balance_calc]
                     sheet.append_row(new_entry)
                     st.success("Ajouté !")
+                    st.rerun()
+            
+            # --- ZONE DE SUPPRESSION ---
+            st.divider()
+            with st.expander("🚨 Zone Danger (Suppression)"):
+                st.write(f"Voulez-vous vraiment supprimer le compte **{selected_acc}** et tout son historique ?")
+                if st.button("Oui, supprimer définitivement", type="primary"):
+                    # Logique de suppression propre dans Google Sheets
+                    # 1. On garde tout sauf ce compte
+                    new_df = df[df["Account"] != selected_acc]
+                    
+                    # 2. On efface le sheet
+                    sheet.clear()
+                    
+                    # 3. On remet les entêtes
+                    sheet.append_row(["Date", "Account", "Firm", "Initial", "Target", "Balance"])
+                    
+                    # 4. On remet les données (s'il en reste)
+                    if not new_df.empty:
+                        # Convertir les dates en chaînes pour éviter les erreurs JSON
+                        new_df['Date'] = new_df['Date'].astype(str)
+                        sheet.append_rows(new_df.values.tolist())
+                    
+                    st.success(f"Compte {selected_acc} supprimé !")
                     st.rerun()
