@@ -21,11 +21,17 @@ def get_google_sheet():
     creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
     client = gspread.authorize(creds)
     
+    # ---------------------------------------------------------
+    # 👇 COLLE TON LIEN GOOGLE SHEET ICI ENTRE LES GUILLEMETS 👇
+    # ---------------------------------------------------------
+    SHEET_URL = "https://docs.google.com/spreadsheets/d/1KnEQC__Q9U6bdJF0AzPPuwApfCgGS5-Qt_svtWSWxEE/edit?gid=0#gid=0" 
+    
     try:
-        sheet = client.open("Trading-App-DB").sheet1
+        # On utilise open_by_url car c'est plus fiable que le nom
+        sheet = client.open_by_url(SHEET_URL).sheet1
         return sheet
     except Exception as e:
-        st.error(f"Erreur d'accès Google Sheet: {e}")
+        st.error(f"Le robot n'arrive pas à ouvrir le fichier. Vérifie que tu as bien invité son email (client_email du JSON) dans le bouton Partager du Sheet. Erreur: {e}")
         st.stop()
 
 # --- CHARGEMENT DES DONNÉES ---
@@ -125,5 +131,4 @@ else:
                     new_entry = [str(u_date), selected_acc, firm_name, float(initial_bal), float(target_bal), new_balance_calc]
                     sheet.append_row(new_entry)
                     st.success("Ajouté !")
-
                     st.rerun()
